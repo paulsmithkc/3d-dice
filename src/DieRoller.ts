@@ -2,7 +2,6 @@ import {
   Camera,
   Clock,
   Euler,
-  MathUtils,
   Mesh,
   MeshBasicMaterial,
   Quaternion,
@@ -16,8 +15,9 @@ export class DieRoller {
   private die: ReturnType<typeof createDie>
   private clock: Clock
   private spinDuration: number
-  private startRotation: Euler
-  private targetRotation: Euler
+  private startRotation: Quaternion
+  private targetRotation: Quaternion
+  private overRotation: Euler
   private isSpinning: boolean
   private highlightedFaceIndex: number
   private highlightedFaceMesh: Mesh | null
@@ -26,8 +26,12 @@ export class DieRoller {
     this.die = createDie()
     this.clock = new Clock()
     this.spinDuration = 2 // 2 seconds
-    this.startRotation = new Euler()
-    this.targetRotation = new Euler()
+    this.startRotation = new Quaternion().setFromUnitVectors(
+      this.die.faceNormals[0],
+      new Vector3().set(0, 0, 1)
+    )
+    this.targetRotation = this.startRotation.clone()
+    this.overRotation = new Euler()
     this.isSpinning = false
     this.highlightedFaceIndex = -1
     this.highlightedFaceMesh = null
@@ -44,27 +48,25 @@ export class DieRoller {
     this.clock.start()
 
     // Save current rotation
-    const currentRotation = this.die.group.rotation
-    this.startRotation.x = currentRotation.x
-    this.startRotation.y = currentRotation.y
-    this.startRotation.z = currentRotation.z
+    this.startRotation = this.targetRotation.clone()
 
     // Generate random target rotation
 
     const faceNormals = this.die.faceNormals
     const num = randomInt(0, faceNormals.length)
-    console.log(`Normal ${num}`)
+    console.log(`Rolling ${num + 1}`)
 
-    const q = new Quaternion().setFromUnitVectors(
-      new Vector3().set(1, 0, 0),
-      faceNormals[num]
+    this.targetRotation = new Quaternion().setFromUnitVectors(
+      faceNormals[num],
+      new Vector3().set(0, 0, 1)
     )
-    const e = new Euler().setFromQuaternion(q)
 
-    const cycle = Math.PI * 2
-    this.targetRotation.x = e.x + cycle * randomInt(2, 5)
-    this.targetRotation.y = e.y + cycle * randomInt(2, 5)
-    this.targetRotation.z = e.z + cycle * randomInt(1, 3)
+    const tau = Math.PI * 2
+    this.overRotation = new Euler(
+      randomInt(2, 5) * tau,
+      randomInt(2, 5) * tau,
+      randomInt(1, 3) * tau
+    )
   }
 
   public animate(camera: Camera) {
@@ -78,22 +80,21 @@ export class DieRoller {
     const eased = 1 - Math.pow(1 - progress, 3)
 
     // Interpolate rotations
-    const lerp = MathUtils.lerp
-    this.die.group.rotation.x = lerp(
-      this.startRotation.x,
-      this.targetRotation.x,
+    const currentRotation = new Quaternion().slerpQuaternions(
+      this.startRotation,
+      this.targetRotation,
       eased
     )
-    this.die.group.rotation.y = lerp(
-      this.startRotation.y,
-      this.targetRotation.y,
-      eased
+    const currentOverRotation = new Quaternion().setFromEuler(
+      new Euler(
+        this.overRotation.x * eased,
+        this.overRotation.y * eased,
+        this.overRotation.z * eased
+      )
     )
-    this.die.group.rotation.z = lerp(
-      this.startRotation.z,
-      this.targetRotation.z,
-      eased
-    )
+    currentRotation.multiply(currentOverRotation)
+
+    this.die.group.rotation.setFromQuaternion(currentRotation)
 
     this.updateHighlight(camera)
 
