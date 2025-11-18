@@ -4,7 +4,8 @@
   "description": "three.js experimental project",
   "author": "Paul Smith",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build"
   },
   "repository": {
     "type": "git",
