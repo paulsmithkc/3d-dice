@@ -16,14 +16,22 @@ export function createDie() {
   const { wireframeMesh, wireframeMaterial } = createWireframe(geometry)
 
   // Create the numbers for the die faces
-  const numbers = createNumbers(geometry)
+  const { faceCenters, faceNormals, numberMeshes, numberGroup } =
+    createNumbers(geometry)
 
   // Put all the components into a group
   const diceGroup = new THREE.Group()
   diceGroup.add(solidMesh)
   diceGroup.add(wireframeMesh)
-  diceGroup.add(numbers)
-  return { diceGroup, wireframeMaterial }
+  diceGroup.add(numberGroup)
+
+  return {
+    diceGroup,
+    wireframeMaterial,
+    faceCenters,
+    faceNormals,
+    numberMeshes,
+  }
 }
 
 function createWireframe(geometry) {
@@ -79,26 +87,30 @@ function createNumbers(geometry) {
   }
 
   const numberGroup = new THREE.Group()
+  const numberMeshes = []
   for (let i = 0; i < faceCenters.length; i++) {
     const numberTexture = createTextTexture((i + 1).toFixed(0))
     const numberMaterial = new THREE.MeshBasicMaterial({
       map: numberTexture,
-      transparent: true,
       side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 1,
+      color: 0x000000,
     })
     const numberGeometry = new THREE.PlaneGeometry(0.3, 0.3)
     const numberMesh = new THREE.Mesh(numberGeometry, numberMaterial)
 
     // Position the plane at the face center, slightly outside
-    numberMesh.position.copy(faceCenters[i].multiplyScalar(1.02))
+    numberMesh.position.copy(faceCenters[i].clone().multiplyScalar(1.02))
 
     // Orient the plane to face outward along the normal direction
-    numberMesh.lookAt(faceCenters[i].add(faceNormals[i]))
+    numberMesh.lookAt(faceCenters[i].clone().add(faceNormals[i]))
 
     numberGroup.add(numberMesh)
+    numberMeshes.push(numberMesh)
   }
 
-  return numberGroup
+  return { faceCenters, faceNormals, numberMeshes, numberGroup }
 }
 
 function createTextTexture(text, size = 64) {
@@ -106,7 +118,7 @@ function createTextTexture(text, size = 64) {
   canvas.width = size
   canvas.height = size
   const context = canvas.getContext('2d')
-  context.fillStyle = '#000000'
+  context.fillStyle = '#ffffff'
   context.font = `bold ${size * 0.6}px Arial`
   context.textAlign = 'center'
   context.textBaseline = 'middle'

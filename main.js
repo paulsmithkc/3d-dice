@@ -16,7 +16,8 @@ renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setAnimationLoop(animate)
 document.body.appendChild(renderer.domElement)
 
-const { diceGroup, wireframeMaterial } = createDie()
+const { diceGroup, wireframeMaterial, faceCenters, faceNormals, numberMeshes } =
+  createDie()
 scene.add(diceGroup)
 
 // Animation state
@@ -26,6 +27,8 @@ let isSpinning = false
 let spinDuration = 2 // 2 seconds
 let startRotation = new THREE.Euler()
 let targetRotation = new THREE.Euler()
+let highlightedFaceIndex = -1
+updateHighlight()
 
 function animate() {
   if (isSpinning) {
@@ -42,6 +45,8 @@ function animate() {
     diceGroup.rotation.y = lerp(startRotation.y, targetRotation.y, eased)
     diceGroup.rotation.z = lerp(startRotation.z, targetRotation.z, eased)
 
+    updateHighlight()
+
     if (progress >= 1) {
       isSpinning = false
       clock.stop()
@@ -49,6 +54,49 @@ function animate() {
   }
 
   renderer.render(scene, camera)
+}
+
+function updateHighlight() {
+  // Find the face closest to camera alignment
+  const cameraDirection = new THREE.Vector3()
+  camera.getWorldDirection(cameraDirection).negate()
+
+  // Update diceGroup matrix to ensure transformations are current
+  diceGroup.updateMatrixWorld()
+
+  // Create quaternion from current die rotation
+  const quaternion = new THREE.Quaternion()
+  diceGroup.getWorldQuaternion(quaternion)
+
+  let maxDot = -Infinity
+  let closestFaceIndex = -1
+  for (let i = 0; i < faceNormals.length; i++) {
+    // Apply current die rotation to the face normal
+    const worldNormal = faceNormals[i].clone()
+    worldNormal.applyQuaternion(quaternion)
+
+    // Dot product gives alignment (1 = perfectly aligned, -1 = opposite)
+    const dot = worldNormal.dot(cameraDirection)
+    if (dot > maxDot) {
+      maxDot = dot
+      closestFaceIndex = i
+    }
+  }
+
+  // Update highlighting
+  if (closestFaceIndex !== highlightedFaceIndex) {
+    // Remove highlight from previous face
+    if (highlightedFaceIndex >= 0) {
+      numberMeshes[highlightedFaceIndex].scale.setScalar(1.0)
+      numberMeshes[highlightedFaceIndex].material.color.setHex(0x000000)
+    }
+    // Highlight new face
+    if (closestFaceIndex >= 0) {
+      numberMeshes[closestFaceIndex].scale.setScalar(2.0)
+      numberMeshes[closestFaceIndex].material.color.setHex(0xffffff)
+    }
+    highlightedFaceIndex = closestFaceIndex
+  }
 }
 
 window.addEventListener('resize', () => {
