@@ -6,12 +6,12 @@ import {
   Vector2,
   WebGLRenderer,
 } from 'three'
-import { wireframeMaterial } from './createDie'
-import { animateDie, diceGroup, rollDie } from './rollDie'
+import { wireframeMaterial } from './wireframe'
+import { animateDie, rollDie, die } from './rollDie'
 
 const scene = new Scene()
 scene.background = new Color(0xe8d4b8)
-scene.add(diceGroup)
+scene.add(die.group)
 
 const camera = new OrthographicCamera(-5, 5, 5, -5, 0.1, 1000)
 camera.position.z = 5
@@ -66,7 +66,7 @@ window.addEventListener('click', (event) => {
   raycaster.setFromCamera(mouse, camera)
 
   // Check if the user clicked on the die
-  const intersects = raycaster.intersectObjects(diceGroup.children, true)
+  const intersects = raycaster.intersectObjects(die.group.children, true)
   if (intersects.length > 0) {
     rollDie()
   }

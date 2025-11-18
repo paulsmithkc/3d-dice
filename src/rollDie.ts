@@ -1,7 +1,6 @@
 import {
   Camera,
   Clock,
-  DoubleSide,
   Euler,
   MathUtils,
   Mesh,
@@ -10,6 +9,7 @@ import {
   Vector3,
 } from 'three'
 import { createDie } from './createDie'
+import { highlightMaterial } from './material'
 
 const clock = new Clock()
 const spinDuration = 2 // 2 seconds
@@ -19,7 +19,7 @@ let isSpinning = false
 let highlightedFaceIndex = -1
 let highlightedFaceMesh: Mesh | null = null
 
-const { diceGroup, faceNormals, faceGeometries, numberMeshes } = createDie()
+const die = createDie()
 rollDie()
 
 function rollDie() {
@@ -30,9 +30,9 @@ function rollDie() {
   clock.start()
 
   // Save current rotation
-  startRotation.x = diceGroup.rotation.x
-  startRotation.y = diceGroup.rotation.y
-  startRotation.z = diceGroup.rotation.z
+  startRotation.x = die.group.rotation.x
+  startRotation.y = die.group.rotation.y
+  startRotation.z = die.group.rotation.z
 
   // Generate random target rotation
   const cycle = Math.PI * 2
@@ -52,9 +52,9 @@ function animateDie(camera: Camera) {
 
     // Interpolate rotations
     const lerp = MathUtils.lerp
-    diceGroup.rotation.x = lerp(startRotation.x, targetRotation.x, eased)
-    diceGroup.rotation.y = lerp(startRotation.y, targetRotation.y, eased)
-    diceGroup.rotation.z = lerp(startRotation.z, targetRotation.z, eased)
+    die.group.rotation.x = lerp(startRotation.x, targetRotation.x, eased)
+    die.group.rotation.y = lerp(startRotation.y, targetRotation.y, eased)
+    die.group.rotation.z = lerp(startRotation.z, targetRotation.z, eased)
 
     updateHighlight(camera)
 
@@ -71,17 +71,17 @@ function updateHighlight(camera: Camera) {
   camera.getWorldDirection(cameraDirection).negate()
 
   // Update diceGroup matrix to ensure transformations are current
-  diceGroup.updateMatrixWorld()
+  die.group.updateMatrixWorld()
 
   // Create quaternion from current die rotation
   const quaternion = new Quaternion()
-  diceGroup.getWorldQuaternion(quaternion)
+  die.group.getWorldQuaternion(quaternion)
 
   let maxDot = -Infinity
   let closestFaceIndex = -1
-  for (let i = 0; i < faceNormals.length; i++) {
+  for (let i = 0; i < die.faceNormals.length; i++) {
     // Apply current die rotation to the face normal
-    const worldNormal = faceNormals[i].clone()
+    const worldNormal = die.faceNormals[i].clone()
     worldNormal.applyQuaternion(quaternion)
 
     // Dot product gives alignment (1 = perfectly aligned, -1 = opposite)
@@ -96,38 +96,32 @@ function updateHighlight(camera: Camera) {
   if (closestFaceIndex !== highlightedFaceIndex) {
     // Remove highlight from previous face
     if (highlightedFaceIndex >= 0) {
-      numberMeshes[highlightedFaceIndex].scale.setScalar(1.0)
+      die.numberMeshes[highlightedFaceIndex].scale.setScalar(1.0)
       ;(
-        numberMeshes[highlightedFaceIndex].material as MeshBasicMaterial
+        die.numberMeshes[highlightedFaceIndex].material as MeshBasicMaterial
       ).color.setHex(0x000000)
     }
 
     // Highlight new face
     if (closestFaceIndex >= 0) {
-      numberMeshes[closestFaceIndex].scale.setScalar(2.0)
+      die.numberMeshes[closestFaceIndex].scale.setScalar(2.0)
       ;(
-        numberMeshes[closestFaceIndex].material as MeshBasicMaterial
+        die.numberMeshes[closestFaceIndex].material as MeshBasicMaterial
       ).color.setHex(0xffffff)
 
       if (highlightedFaceMesh) {
-        highlightedFaceMesh.geometry = faceGeometries[closestFaceIndex]
+        highlightedFaceMesh.geometry = die.faceGeometries[closestFaceIndex]
       } else {
         // Create mesh to highlight the face
-        const highlightMaterial = new MeshBasicMaterial({
-          color: 0xffffff,
-          side: DoubleSide,
-          transparent: true,
-          opacity: 0.4,
-          depthWrite: false, // Don't write to depth buffer to avoid z-fighting
-        })
+
         highlightedFaceMesh = new Mesh(
-          faceGeometries[closestFaceIndex],
+          die.faceGeometries[closestFaceIndex],
           highlightMaterial
         )
         highlightedFaceMesh.scale.setScalar(0.99)
         highlightedFaceMesh.renderOrder = 2
 
-        diceGroup.add(highlightedFaceMesh)
+        die.group.add(highlightedFaceMesh)
       }
     }
 
@@ -135,4 +129,4 @@ function updateHighlight(camera: Camera) {
   }
 }
 
-export { animateDie, diceGroup, rollDie }
+export { animateDie, rollDie, die }
