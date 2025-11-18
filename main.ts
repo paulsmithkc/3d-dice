@@ -1,11 +1,26 @@
-import * as THREE from 'three'
+import {
+  Clock,
+  Color,
+  DoubleSide,
+  Euler,
+  MathUtils,
+  Mesh,
+  MeshBasicMaterial,
+  OrthographicCamera,
+  Quaternion,
+  Raycaster,
+  Scene,
+  Vector2,
+  Vector3,
+  WebGLRenderer,
+} from 'three'
 import { createDie } from './die'
 
-const scene = new THREE.Scene()
-scene.background = new THREE.Color(0xe8d4b8)
+const scene = new Scene()
+scene.background = new Color(0xe8d4b8)
 
 // Calculate orthographic camera bounds
-const camera = new THREE.OrthographicCamera(-5, 5, 5, -5, 0.1, 1000)
+const camera = new OrthographicCamera(-5, 5, 5, -5, 0.1, 1000)
 camera.position.z = 5
 
 function updateCamera() {
@@ -34,7 +49,7 @@ function updateCamera() {
 }
 updateCamera()
 
-const renderer = new THREE.WebGLRenderer({ antialias: true })
+const renderer = new WebGLRenderer({ antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setAnimationLoop(animate)
 document.body.appendChild(renderer.domElement)
@@ -49,13 +64,13 @@ const {
 scene.add(diceGroup)
 
 // Animation state
-const clock = new THREE.Clock()
+const clock = new Clock()
 const spinDuration = 2 // 2 seconds
-const startRotation = new THREE.Euler()
-const targetRotation = new THREE.Euler()
+const startRotation = new Euler()
+const targetRotation = new Euler()
 let isSpinning = false
 let highlightedFaceIndex = -1
-let highlightedFaceMesh: THREE.Mesh | null = null
+let highlightedFaceMesh: Mesh | null = null
 rollDie()
 
 function animate() {
@@ -68,7 +83,7 @@ function animate() {
     const eased = 1 - Math.pow(1 - progress, 3)
 
     // Interpolate rotations
-    const lerp = THREE.MathUtils.lerp
+    const lerp = MathUtils.lerp
     diceGroup.rotation.x = lerp(startRotation.x, targetRotation.x, eased)
     diceGroup.rotation.y = lerp(startRotation.y, targetRotation.y, eased)
     diceGroup.rotation.z = lerp(startRotation.z, targetRotation.z, eased)
@@ -86,14 +101,14 @@ function animate() {
 
 function updateHighlight() {
   // Find the face closest to camera alignment
-  const cameraDirection = new THREE.Vector3()
+  const cameraDirection = new Vector3()
   camera.getWorldDirection(cameraDirection).negate()
 
   // Update diceGroup matrix to ensure transformations are current
   diceGroup.updateMatrixWorld()
 
   // Create quaternion from current die rotation
-  const quaternion = new THREE.Quaternion()
+  const quaternion = new Quaternion()
   diceGroup.getWorldQuaternion(quaternion)
 
   let maxDot = -Infinity
@@ -128,14 +143,14 @@ function updateHighlight() {
         highlightedFaceMesh.geometry = faceGeometries[closestFaceIndex]
       } else {
         // Create mesh to highlight the face
-        const highlightMaterial = new THREE.MeshBasicMaterial({
+        const highlightMaterial = new MeshBasicMaterial({
           color: 0xffffff,
-          side: THREE.DoubleSide,
+          side: DoubleSide,
           transparent: true,
           opacity: 0.4,
           depthWrite: false, // Don't write to depth buffer to avoid z-fighting
         })
-        highlightedFaceMesh = new THREE.Mesh(
+        highlightedFaceMesh = new Mesh(
           faceGeometries[closestFaceIndex],
           highlightMaterial
         )
@@ -173,8 +188,8 @@ window.addEventListener('resize', () => {
   wireframeMaterial.resolution.set(window.innerWidth, window.innerHeight)
 })
 
-const mouse = new THREE.Vector2()
-const raycaster = new THREE.Raycaster()
+const mouse = new Vector2()
+const raycaster = new Raycaster()
 
 window.addEventListener('click', (event) => {
   if (isSpinning) return

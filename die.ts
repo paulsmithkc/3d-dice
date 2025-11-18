@@ -1,15 +1,27 @@
-import * as THREE from 'three'
+import {
+  BufferAttribute,
+  BufferGeometry,
+  CanvasTexture,
+  DoubleSide,
+  Group,
+  IcosahedronGeometry,
+  Mesh,
+  MeshBasicMaterial,
+  PlaneGeometry,
+  Vector3,
+  WireframeGeometry,
+} from 'three'
 import { Line2 } from 'three/examples/jsm/lines/Line2.js'
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js'
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 
 export function createDie() {
   // create the solid mesh of the die
-  const geometry = new THREE.IcosahedronGeometry()
-  const solidMaterial = new THREE.MeshBasicMaterial({
+  const geometry = new IcosahedronGeometry()
+  const solidMaterial = new MeshBasicMaterial({
     color: 0xcc0000,
   })
-  const solidMesh = new THREE.Mesh(geometry, solidMaterial)
+  const solidMesh = new Mesh(geometry, solidMaterial)
   solidMesh.scale.setScalar(0.99) // shrink the solid mesh so that it doesn't obscure with the wireframe
 
   // Create the wireframe for the die edges
@@ -25,7 +37,7 @@ export function createDie() {
   } = createNumbers(geometry)
 
   // Put all the components into a group
-  const diceGroup = new THREE.Group()
+  const diceGroup = new Group()
   diceGroup.add(solidMesh)
   diceGroup.add(wireframeMesh)
   diceGroup.add(numberGroup)
@@ -40,8 +52,8 @@ export function createDie() {
   }
 }
 
-function createWireframe(geometry: THREE.IcosahedronGeometry) {
-  const wireframeBaseGeometry = new THREE.WireframeGeometry(geometry)
+function createWireframe(geometry: IcosahedronGeometry) {
+  const wireframeBaseGeometry = new WireframeGeometry(geometry)
   const wireframeBasePositions = wireframeBaseGeometry.attributes.position
   const wireframePositions = [] as number[]
   for (let i = 0; i < wireframeBasePositions.count; i++) {
@@ -63,62 +75,59 @@ function createWireframe(geometry: THREE.IcosahedronGeometry) {
   return { wireframeGeometry, wireframeMesh, wireframeMaterial }
 }
 
-function createNumbers(geometry) {
+function createNumbers(geometry: IcosahedronGeometry) {
   const positions = geometry.attributes.position
-  const faceCenters = [] as THREE.Vector3[]
-  const faceNormals = [] as THREE.Vector3[]
-  const faceGeometries = [] as THREE.BufferGeometry[]
+  const faceCenters = [] as Vector3[]
+  const faceNormals = [] as Vector3[]
+  const faceGeometries = [] as BufferGeometry[]
 
   // IcosahedronGeometry stores vertices directly as triangles (no index buffer)
   for (let i = 0; i < positions.count; i += 3) {
-    const v1 = new THREE.Vector3(
+    const v1 = new Vector3(
       positions.getX(i),
       positions.getY(i),
       positions.getZ(i)
     )
-    const v2 = new THREE.Vector3(
+    const v2 = new Vector3(
       positions.getX(i + 1),
       positions.getY(i + 1),
       positions.getZ(i + 1)
     )
-    const v3 = new THREE.Vector3(
+    const v3 = new Vector3(
       positions.getX(i + 2),
       positions.getY(i + 2),
       positions.getZ(i + 2)
     )
 
-    const faceGeometry = new THREE.BufferGeometry()
+    const faceGeometry = new BufferGeometry()
     const vertices = new Float32Array([...v1, ...v2, ...v3])
-    faceGeometry.setAttribute(
-      'position',
-      new THREE.BufferAttribute(vertices, 3)
-    )
+    faceGeometry.setAttribute('position', new BufferAttribute(vertices, 3))
     faceGeometry.computeVertexNormals()
     faceGeometries.push(faceGeometry)
 
-    const center = new THREE.Vector3()
+    const center = new Vector3()
     center.add(v1).add(v2).add(v3).divideScalar(3)
     faceCenters.push(center)
-    const edge1 = new THREE.Vector3().subVectors(v2, v1)
-    const edge2 = new THREE.Vector3().subVectors(v3, v1)
-    const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize()
+    const edge1 = new Vector3().subVectors(v2, v1)
+    const edge2 = new Vector3().subVectors(v3, v1)
+    const normal = new Vector3().crossVectors(edge1, edge2).normalize()
     faceNormals.push(normal)
   }
 
-  const numberGroup = new THREE.Group()
-  const numberMeshes = [] as THREE.Mesh[]
+  const numberGroup = new Group()
+  const numberMeshes = [] as Mesh[]
   for (let i = 0; i < faceCenters.length; i++) {
     const numberTexture = createTextTexture((i + 1).toFixed(0))
-    const numberMaterial = new THREE.MeshBasicMaterial({
+    const numberMaterial = new MeshBasicMaterial({
       map: numberTexture,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
       transparent: true,
       opacity: 1,
       color: 0x000000,
       depthWrite: false,
     })
-    const numberGeometry = new THREE.PlaneGeometry(0.3, 0.3)
-    const numberMesh = new THREE.Mesh(numberGeometry, numberMaterial)
+    const numberGeometry = new PlaneGeometry(0.3, 0.3)
+    const numberMesh = new Mesh(numberGeometry, numberMaterial)
 
     numberMesh.position.copy(faceCenters[i].clone().multiplyScalar(1.02))
     numberMesh.lookAt(faceCenters[i].clone().add(faceNormals[i]))
@@ -131,7 +140,7 @@ function createNumbers(geometry) {
   return { faceCenters, faceNormals, faceGeometries, numberMeshes, numberGroup }
 }
 
-function createTextTexture(text, size = 128) {
+function createTextTexture(text: string, size = 128) {
   const canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
@@ -143,7 +152,7 @@ function createTextTexture(text, size = 128) {
   context.textBaseline = 'middle'
   context.fillText(text, size / 2, size / 2)
 
-  // Underline numbers end with 6 and 9 to distinguish them
+  // Underline numbers ending in 6 and 9 to distinguish them
   // Canvas doesn't support CSS text-decoration, so we draw it manually
   if (text.endsWith('6') || text.endsWith('9')) {
     context.strokeStyle = '#ffffff'
@@ -156,7 +165,7 @@ function createTextTexture(text, size = 128) {
     context.stroke()
   }
 
-  const texture = new THREE.CanvasTexture(canvas)
+  const texture = new CanvasTexture(canvas)
   texture.needsUpdate = true
   return texture
 }
