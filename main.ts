@@ -56,7 +56,7 @@ const targetRotation = new THREE.Euler()
 let isSpinning = false
 let highlightedFaceIndex = -1
 let highlightedFaceMesh: THREE.Mesh | null = null
-updateHighlight()
+rollDie()
 
 function animate() {
   if (isSpinning) {
@@ -150,6 +150,23 @@ function updateHighlight() {
   }
 }
 
+function rollDie() {
+  // Start spinning to random rotation
+  isSpinning = true
+  clock.start()
+
+  // Save current rotation
+  startRotation.x = diceGroup.rotation.x
+  startRotation.y = diceGroup.rotation.y
+  startRotation.z = diceGroup.rotation.z
+
+  // Generate random target rotation
+  const cycle = Math.PI * 2
+  targetRotation.x = startRotation.x + cycle * 2 * (1 + Math.random() * 2)
+  targetRotation.y = startRotation.y + cycle * 2 * (1 + Math.random() * 2)
+  targetRotation.z = startRotation.z + cycle * 1 * (1 + Math.random() * 2)
+}
+
 window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight)
   updateCamera()
@@ -172,19 +189,6 @@ window.addEventListener('click', (event) => {
   // Check if the user clicked on the die
   const intersects = raycaster.intersectObjects(diceGroup.children, true)
   if (intersects.length > 0) {
-    // Start spinning to random rotation
-    isSpinning = true
-    clock.start()
-
-    // Save current rotation
-    startRotation.x = diceGroup.rotation.x
-    startRotation.y = diceGroup.rotation.y
-    startRotation.z = diceGroup.rotation.z
-
-    // Generate random target rotation
-    const cycle = Math.PI * 2
-    targetRotation.x = startRotation.x + cycle * 2 * (1 + Math.random() * 2)
-    targetRotation.y = startRotation.y + cycle * 2 * (1 + Math.random() * 2)
-    targetRotation.z = startRotation.z + cycle * 1 * (1 + Math.random() * 2)
+    rollDie()
   }
 })
