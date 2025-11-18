@@ -117,12 +117,27 @@ function createTextTexture(text, size = 64) {
   const canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
+
   const context = canvas.getContext('2d')
   context.fillStyle = '#ffffff'
   context.font = `bold ${size * 0.6}px Arial`
   context.textAlign = 'center'
   context.textBaseline = 'middle'
   context.fillText(text, size / 2, size / 2)
+
+  // Underline numbers end with 6 and 9 to distinguish them
+  // Canvas doesn't support CSS text-decoration, so we draw it manually
+  if (text.endsWith('6') || text.endsWith('9')) {
+    context.strokeStyle = '#ffffff'
+    context.lineWidth = 5
+    const underlineY = size * 0.8
+    const underlineWidth = size * 0.3 * text.length
+    context.beginPath()
+    context.moveTo(size / 2 - underlineWidth / 2, underlineY)
+    context.lineTo(size / 2 + underlineWidth / 2, underlineY)
+    context.stroke()
+  }
+
   const texture = new THREE.CanvasTexture(canvas)
   texture.needsUpdate = true
   return texture
