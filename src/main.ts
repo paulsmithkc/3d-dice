@@ -7,11 +7,14 @@ import {
   WebGLRenderer,
 } from 'three'
 import { wireframeMaterial } from './wireframe'
-import { animateDie, rollDie, die } from './rollDie'
+import { DieRoller } from './DieRoller'
+
+const dieRoller = new DieRoller()
+dieRoller.roll()
 
 const scene = new Scene()
 scene.background = new Color(0xe8d4b8)
-scene.add(die.group)
+scene.add(dieRoller.getGroup())
 
 const camera = new OrthographicCamera(-5, 5, 5, -5, 0.1, 1000)
 camera.position.z = 5
@@ -43,7 +46,7 @@ updateCamera()
 const renderer = new WebGLRenderer({ antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setAnimationLoop(() => {
-  animateDie(camera)
+  dieRoller.animate(camera)
   renderer.render(scene, camera)
 })
 document.body.appendChild(renderer.domElement)
@@ -66,8 +69,11 @@ window.addEventListener('click', (event) => {
   raycaster.setFromCamera(mouse, camera)
 
   // Check if the user clicked on the die
-  const intersects = raycaster.intersectObjects(die.group.children, true)
+  const intersects = raycaster.intersectObjects(
+    dieRoller.getGroup().children,
+    true
+  )
   if (intersects.length > 0) {
-    rollDie()
+    dieRoller.roll()
   }
 })
