@@ -10,6 +10,7 @@ import {
 } from 'three'
 import { createDie } from './createDie'
 import { highlightMaterial } from './material'
+import { randomInt } from './random'
 
 export class DieRoller {
   private die: ReturnType<typeof createDie>
@@ -43,18 +44,27 @@ export class DieRoller {
     this.clock.start()
 
     // Save current rotation
-    this.startRotation.x = this.die.group.rotation.x
-    this.startRotation.y = this.die.group.rotation.y
-    this.startRotation.z = this.die.group.rotation.z
+    const currentRotation = this.die.group.rotation
+    this.startRotation.x = currentRotation.x
+    this.startRotation.y = currentRotation.y
+    this.startRotation.z = currentRotation.z
 
     // Generate random target rotation
+
+    const faceNormals = this.die.faceNormals
+    const num = randomInt(0, faceNormals.length)
+    console.log(`Normal ${num}`)
+
+    const q = new Quaternion().setFromUnitVectors(
+      new Vector3().set(1, 0, 0),
+      faceNormals[num]
+    )
+    const e = new Euler().setFromQuaternion(q)
+
     const cycle = Math.PI * 2
-    this.targetRotation.x =
-      this.startRotation.x + cycle * 2 * (1 + Math.random() * 2)
-    this.targetRotation.y =
-      this.startRotation.y + cycle * 2 * (1 + Math.random() * 2)
-    this.targetRotation.z =
-      this.startRotation.z + cycle * 1 * (1 + Math.random() * 2)
+    this.targetRotation.x = e.x + cycle * randomInt(2, 5)
+    this.targetRotation.y = e.y + cycle * randomInt(2, 5)
+    this.targetRotation.z = e.z + cycle * randomInt(1, 3)
   }
 
   public animate(camera: Camera) {
