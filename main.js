@@ -24,8 +24,8 @@ const solidMaterial = new THREE.MeshBasicMaterial({
 })
 
 const wireframeBaseGeometry = new THREE.WireframeGeometry(geometry)
-const wireframePositions = []
 const wireframeBasePositions = wireframeBaseGeometry.attributes.position
+const wireframePositions = []
 for (let i = 0; i < wireframeBasePositions.count; i++) {
   wireframePositions.push(
     wireframeBasePositions.getX(i),
@@ -37,12 +37,12 @@ const wireframeGeometry = new LineGeometry()
 wireframeGeometry.setPositions(wireframePositions)
 const wireframeMaterial = new LineMaterial({
   color: 0x000000,
-  linewidth: 3,
-  side: THREE.DoubleSide,
+  linewidth: 5,
 })
 wireframeMaterial.resolution.set(window.innerWidth, window.innerHeight)
 
 const solidMesh = new THREE.Mesh(geometry, solidMaterial)
+solidMesh.scale.setScalar(0.99)
 const wireframeMesh = new Line2(wireframeGeometry, wireframeMaterial)
 scene.add(solidMesh)
 scene.add(wireframeMesh)
