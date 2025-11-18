@@ -3,13 +3,36 @@ import { createDie } from './die.js'
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0xe8d4b8)
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-)
+
+// Calculate orthographic camera bounds
+const camera = new THREE.OrthographicCamera(-5, 5, 5, -5, 0.1, 1000)
 camera.position.z = 5
+
+function updateCamera() {
+  // N.B. The die has a fixed diameter of 1 unit
+  const viewSize = 1.5
+
+  // Account for aspect ratio
+  const aspect = window.innerWidth / window.innerHeight
+
+  // Set camera bounds to fit the dice
+  if (aspect > 1) {
+    // Wider than tall - fit to height
+    camera.left = -viewSize * aspect
+    camera.right = viewSize * aspect
+    camera.top = viewSize
+    camera.bottom = -viewSize
+  } else {
+    // Taller than wide - fit to width
+    camera.left = -viewSize
+    camera.right = viewSize
+    camera.top = viewSize / aspect
+    camera.bottom = -viewSize / aspect
+  }
+
+  camera.updateProjectionMatrix()
+}
+updateCamera()
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -130,8 +153,7 @@ function updateHighlight() {
 
 window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight)
-  camera.aspect = window.innerWidth / window.innerHeight
-  camera.updateProjectionMatrix()
+  updateCamera()
   wireframeMaterial.resolution.set(window.innerWidth, window.innerHeight)
 })
 

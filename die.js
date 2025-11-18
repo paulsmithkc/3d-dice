@@ -10,7 +10,7 @@ export function createDie() {
     color: 0xcc0000,
   })
   const solidMesh = new THREE.Mesh(geometry, solidMaterial)
-  solidMesh.scale.setScalar(0.98) // shrink the solid mesh so that it doesn't obscure with the wireframe
+  solidMesh.scale.setScalar(0.99) // shrink the solid mesh so that it doesn't obscure with the wireframe
 
   // Create the wireframe for the die edges
   const { wireframeMesh, wireframeMaterial } = createWireframe(geometry)
@@ -55,7 +55,9 @@ function createWireframe(geometry) {
   wireframeGeometry.setPositions(wireframePositions)
   const wireframeMaterial = new LineMaterial({
     color: 0x000000,
-    linewidth: 5,
+    linewidth: 10,
+    transparent: true,
+    opacity: 1,
     writeDepth: false,
   })
   wireframeMaterial.resolution.set(window.innerWidth, window.innerHeight)
