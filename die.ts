@@ -40,10 +40,10 @@ export function createDie() {
   }
 }
 
-function createWireframe(geometry) {
+function createWireframe(geometry: THREE.IcosahedronGeometry) {
   const wireframeBaseGeometry = new THREE.WireframeGeometry(geometry)
   const wireframeBasePositions = wireframeBaseGeometry.attributes.position
-  const wireframePositions = []
+  const wireframePositions = [] as number[]
   for (let i = 0; i < wireframeBasePositions.count; i++) {
     wireframePositions.push(
       wireframeBasePositions.getX(i),
@@ -55,7 +55,7 @@ function createWireframe(geometry) {
   wireframeGeometry.setPositions(wireframePositions)
   const wireframeMaterial = new LineMaterial({
     color: 0x000000,
-    linewidth: 10,
+    linewidth: 5,
   })
   wireframeMaterial.resolution.set(window.innerWidth, window.innerHeight)
   const wireframeMesh = new Line2(wireframeGeometry, wireframeMaterial)
@@ -65,9 +65,9 @@ function createWireframe(geometry) {
 
 function createNumbers(geometry) {
   const positions = geometry.attributes.position
-  const faceCenters = []
-  const faceNormals = []
-  const faceGeometries = []
+  const faceCenters = [] as THREE.Vector3[]
+  const faceNormals = [] as THREE.Vector3[]
+  const faceGeometries = [] as THREE.BufferGeometry[]
 
   // IcosahedronGeometry stores vertices directly as triangles (no index buffer)
   for (let i = 0; i < positions.count; i += 3) {
@@ -106,7 +106,7 @@ function createNumbers(geometry) {
   }
 
   const numberGroup = new THREE.Group()
-  const numberMeshes = []
+  const numberMeshes = [] as THREE.Mesh[]
   for (let i = 0; i < faceCenters.length; i++) {
     const numberTexture = createTextTexture((i + 1).toFixed(0))
     const numberMaterial = new THREE.MeshBasicMaterial({
@@ -131,12 +131,12 @@ function createNumbers(geometry) {
   return { faceCenters, faceNormals, faceGeometries, numberMeshes, numberGroup }
 }
 
-function createTextTexture(text, size = 64) {
+function createTextTexture(text, size = 128) {
   const canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
 
-  const context = canvas.getContext('2d')
+  const context = canvas.getContext('2d') as CanvasRenderingContext2D
   context.fillStyle = '#ffffff'
   context.font = `bold ${size * 0.6}px Arial`
   context.textAlign = 'center'

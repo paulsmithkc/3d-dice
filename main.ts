@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { createDie } from './die.js'
+import { createDie } from './die'
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0xe8d4b8)
@@ -50,13 +50,12 @@ scene.add(diceGroup)
 
 // Animation state
 const clock = new THREE.Clock()
+const spinDuration = 2 // 2 seconds
+const startRotation = new THREE.Euler()
+const targetRotation = new THREE.Euler()
 let isSpinning = false
-// let spinStartTime = 0
-let spinDuration = 2 // 2 seconds
-let startRotation = new THREE.Euler()
-let targetRotation = new THREE.Euler()
 let highlightedFaceIndex = -1
-let highlightedFaceMesh = null
+let highlightedFaceMesh: THREE.Mesh | null = null
 updateHighlight()
 
 function animate() {
