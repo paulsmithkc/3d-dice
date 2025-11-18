@@ -25,3 +25,9 @@ function animate(time) {
   cube.rotation.y = time * 0.001
   renderer.render(scene, camera)
 }
+
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  camera.aspect = window.innerWidth / window.innerHeight
+  camera.updateProjectionMatrix()
+})
