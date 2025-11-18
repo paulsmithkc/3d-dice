@@ -1,21 +1,13 @@
 import {
-  Clock,
   Color,
-  DoubleSide,
-  Euler,
-  MathUtils,
-  Mesh,
-  MeshBasicMaterial,
   OrthographicCamera,
-  Quaternion,
   Raycaster,
   Scene,
   Vector2,
-  Vector3,
   WebGLRenderer,
 } from 'three'
 import { wireframeMaterial } from './createDie'
-import { rollDie, animateDie, diceGroup } from './rollDie'
+import { animateDie, diceGroup, rollDie } from './rollDie'
 
 const scene = new Scene()
 scene.background = new Color(0xe8d4b8)

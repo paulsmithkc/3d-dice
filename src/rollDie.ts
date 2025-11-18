@@ -1,19 +1,13 @@
 import {
   Camera,
   Clock,
-  Color,
   DoubleSide,
   Euler,
   MathUtils,
   Mesh,
   MeshBasicMaterial,
-  OrthographicCamera,
   Quaternion,
-  Raycaster,
-  Scene,
-  Vector2,
   Vector3,
-  WebGLRenderer,
 } from 'three'
 import { createDie } from './createDie'
 
@@ -141,4 +135,4 @@ function updateHighlight(camera: Camera) {
   }
 }
 
-export { rollDie, animateDie, diceGroup }
+export { animateDie, diceGroup, rollDie }
