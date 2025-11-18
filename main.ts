@@ -131,13 +131,17 @@ function updateHighlight() {
     // Remove highlight from previous face
     if (highlightedFaceIndex >= 0) {
       numberMeshes[highlightedFaceIndex].scale.setScalar(1.0)
-      numberMeshes[highlightedFaceIndex].material.color.setHex(0x000000)
+      ;(
+        numberMeshes[highlightedFaceIndex].material as MeshBasicMaterial
+      ).color.setHex(0x000000)
     }
 
     // Highlight new face
     if (closestFaceIndex >= 0) {
       numberMeshes[closestFaceIndex].scale.setScalar(2.0)
-      numberMeshes[closestFaceIndex].material.color.setHex(0xffffff)
+      ;(
+        numberMeshes[closestFaceIndex].material as MeshBasicMaterial
+      ).color.setHex(0xffffff)
 
       if (highlightedFaceMesh) {
         highlightedFaceMesh.geometry = faceGeometries[closestFaceIndex]
