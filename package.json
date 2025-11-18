@@ -1,0 +1,23 @@
+{
+  "name": "3d-dice",
+  "version": "0.0.1",
+  "description": "three.js experimental project",
+  "author": "Paul Smith",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paulsmithkc/3d-dice.git"
+  },
+  "bugs": {
+    "url": "https://github.com/paulsmithkc/3d-dice/issues"
+  },
+  "homepage": "https://github.com/paulsmithkc/3d-dice#readme",
+  "dependencies": {
+    "three": "^0.181.1"
+  },
+  "devDependencies": {
+    "vite": "^7.2.2"
+  }
+}
