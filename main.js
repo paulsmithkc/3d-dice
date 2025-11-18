@@ -13,7 +13,7 @@ const camera = new THREE.PerspectiveCamera(
 )
 camera.position.z = 5
 
-const renderer = new THREE.WebGLRenderer()
+const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setAnimationLoop(animate)
 document.body.appendChild(renderer.domElement)
@@ -23,13 +23,14 @@ const solidMaterial = new THREE.MeshBasicMaterial({
   color: 0xcc0000,
 })
 
-const solidPositions = geometry.attributes.position
+const wireframeBaseGeometry = new THREE.WireframeGeometry(geometry)
 const wireframePositions = []
-for (let i = 0; i < solidPositions.count; i++) {
+const wireframeBasePositions = wireframeBaseGeometry.attributes.position
+for (let i = 0; i < wireframeBasePositions.count; i++) {
   wireframePositions.push(
-    solidPositions.getX(i),
-    solidPositions.getY(i),
-    solidPositions.getZ(i)
+    wireframeBasePositions.getX(i),
+    wireframeBasePositions.getY(i),
+    wireframeBasePositions.getZ(i)
   )
 }
 const wireframeGeometry = new LineGeometry()
@@ -37,6 +38,7 @@ wireframeGeometry.setPositions(wireframePositions)
 const wireframeMaterial = new LineMaterial({
   color: 0x000000,
   linewidth: 3,
+  side: THREE.DoubleSide,
 })
 wireframeMaterial.resolution.set(window.innerWidth, window.innerHeight)
 
