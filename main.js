@@ -16,8 +16,13 @@ renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setAnimationLoop(animate)
 document.body.appendChild(renderer.domElement)
 
-const { diceGroup, wireframeMaterial, faceCenters, faceNormals, numberMeshes } =
-  createDie()
+const {
+  diceGroup,
+  wireframeMaterial,
+  faceNormals,
+  faceGeometries,
+  numberMeshes,
+} = createDie()
 scene.add(diceGroup)
 
 // Animation state
@@ -28,6 +33,7 @@ let spinDuration = 2 // 2 seconds
 let startRotation = new THREE.Euler()
 let targetRotation = new THREE.Euler()
 let highlightedFaceIndex = -1
+let highlightedFaceMesh = null
 updateHighlight()
 
 function animate() {
@@ -90,11 +96,34 @@ function updateHighlight() {
       numberMeshes[highlightedFaceIndex].scale.setScalar(1.0)
       numberMeshes[highlightedFaceIndex].material.color.setHex(0x000000)
     }
+
     // Highlight new face
     if (closestFaceIndex >= 0) {
       numberMeshes[closestFaceIndex].scale.setScalar(2.0)
       numberMeshes[closestFaceIndex].material.color.setHex(0xffffff)
+
+      if (highlightedFaceMesh) {
+        highlightedFaceMesh.geometry = faceGeometries[closestFaceIndex]
+      } else {
+        // Create mesh to highlight the face
+        const highlightMaterial = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.4,
+          depthWrite: false, // Don't write to depth buffer to avoid z-fighting
+        })
+        highlightedFaceMesh = new THREE.Mesh(
+          faceGeometries[closestFaceIndex],
+          highlightMaterial
+        )
+        highlightedFaceMesh.scale.setScalar(0.99)
+        highlightedFaceMesh.renderOrder = 2
+
+        diceGroup.add(highlightedFaceMesh)
+      }
     }
+
     highlightedFaceIndex = closestFaceIndex
   }
 }

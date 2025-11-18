@@ -16,8 +16,13 @@ export function createDie() {
   const { wireframeMesh, wireframeMaterial } = createWireframe(geometry)
 
   // Create the numbers for the die faces
-  const { faceCenters, faceNormals, numberMeshes, numberGroup } =
-    createNumbers(geometry)
+  const {
+    faceCenters,
+    faceNormals,
+    faceGeometries,
+    numberMeshes,
+    numberGroup,
+  } = createNumbers(geometry)
 
   // Put all the components into a group
   const diceGroup = new THREE.Group()
@@ -30,6 +35,7 @@ export function createDie() {
     wireframeMaterial,
     faceCenters,
     faceNormals,
+    faceGeometries,
     numberMeshes,
   }
 }
@@ -50,9 +56,11 @@ function createWireframe(geometry) {
   const wireframeMaterial = new LineMaterial({
     color: 0x000000,
     linewidth: 5,
+    writeDepth: false,
   })
   wireframeMaterial.resolution.set(window.innerWidth, window.innerHeight)
   const wireframeMesh = new Line2(wireframeGeometry, wireframeMaterial)
+  wireframeMesh.renderOrder = 3
   return { wireframeGeometry, wireframeMesh, wireframeMaterial }
 }
 
@@ -60,8 +68,10 @@ function createNumbers(geometry) {
   const positions = geometry.attributes.position
   const faceCenters = []
   const faceNormals = []
+  const faceGeometries = []
+
+  // IcosahedronGeometry stores vertices directly as triangles (no index buffer)
   for (let i = 0; i < positions.count; i += 3) {
-    // assume the geometry is stored as triangles
     const v1 = new THREE.Vector3(
       positions.getX(i),
       positions.getY(i),
@@ -77,6 +87,16 @@ function createNumbers(geometry) {
       positions.getY(i + 2),
       positions.getZ(i + 2)
     )
+
+    const faceGeometry = new THREE.BufferGeometry()
+    const vertices = new Float32Array([...v1, ...v2, ...v3])
+    faceGeometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(vertices, 3)
+    )
+    faceGeometry.computeVertexNormals()
+    faceGeometries.push(faceGeometry)
+
     const center = new THREE.Vector3()
     center.add(v1).add(v2).add(v3).divideScalar(3)
     faceCenters.push(center)
@@ -96,21 +116,20 @@ function createNumbers(geometry) {
       transparent: true,
       opacity: 1,
       color: 0x000000,
+      depthWrite: false,
     })
     const numberGeometry = new THREE.PlaneGeometry(0.3, 0.3)
     const numberMesh = new THREE.Mesh(numberGeometry, numberMaterial)
 
-    // Position the plane at the face center, slightly outside
     numberMesh.position.copy(faceCenters[i].clone().multiplyScalar(1.02))
-
-    // Orient the plane to face outward along the normal direction
     numberMesh.lookAt(faceCenters[i].clone().add(faceNormals[i]))
+    numberMesh.renderOrder = 1
 
     numberGroup.add(numberMesh)
     numberMeshes.push(numberMesh)
   }
 
-  return { faceCenters, faceNormals, numberMeshes, numberGroup }
+  return { faceCenters, faceNormals, faceGeometries, numberMeshes, numberGroup }
 }
 
 function createTextTexture(text, size = 64) {
