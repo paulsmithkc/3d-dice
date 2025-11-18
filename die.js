@@ -10,7 +10,7 @@ export function createDie() {
     color: 0xcc0000,
   })
   const solidMesh = new THREE.Mesh(geometry, solidMaterial)
-  solidMesh.scale.setScalar(0.99) // shrink the solid mesh so that it doesn't obscure with the wireframe
+  solidMesh.scale.setScalar(0.98) // shrink the solid mesh so that it doesn't obscure with the wireframe
 
   // Create the wireframe for the die edges
   const { wireframeMesh, wireframeMaterial } = createWireframe(geometry)
@@ -80,16 +80,22 @@ function createNumbers(geometry) {
 
   const numberGroup = new THREE.Group()
   for (let i = 0; i < faceCenters.length; i++) {
-    const texture = createTextTexture((i + 1).toString())
-    const spriteMaterial = new THREE.SpriteMaterial({
-      map: texture,
+    const numberTexture = createTextTexture((i + 1).toFixed(0))
+    const numberMaterial = new THREE.MeshBasicMaterial({
+      map: numberTexture,
       transparent: true,
+      side: THREE.DoubleSide,
     })
-    const sprite = new THREE.Sprite(spriteMaterial)
-    sprite.position.copy(faceCenters[i])
-    sprite.position.multiplyScalar(1.02) // Slightly outside the mesh
-    sprite.scale.setScalar(0.3)
-    numberGroup.add(sprite)
+    const numberGeometry = new THREE.PlaneGeometry(0.3, 0.3)
+    const numberMesh = new THREE.Mesh(numberGeometry, numberMaterial)
+
+    // Position the plane at the face center, slightly outside
+    numberMesh.position.copy(faceCenters[i].multiplyScalar(1.02))
+
+    // Orient the plane to face outward along the normal direction
+    numberMesh.lookAt(faceCenters[i].add(faceNormals[i]))
+
+    numberGroup.add(numberMesh)
   }
 
   return numberGroup
