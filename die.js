@@ -56,9 +56,6 @@ function createWireframe(geometry) {
   const wireframeMaterial = new LineMaterial({
     color: 0x000000,
     linewidth: 10,
-    transparent: true,
-    opacity: 1,
-    writeDepth: false,
   })
   wireframeMaterial.resolution.set(window.innerWidth, window.innerHeight)
   const wireframeMesh = new Line2(wireframeGeometry, wireframeMaterial)
