@@ -15,6 +15,11 @@ import { Line2 } from 'three/examples/jsm/lines/Line2.js'
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js'
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 
+export const wireframeMaterial = new LineMaterial({
+  color: 0x000000,
+  linewidth: 5,
+})
+
 export function createDie() {
   // create the solid mesh of the die
   const geometry = new IcosahedronGeometry()
@@ -25,7 +30,7 @@ export function createDie() {
   solidMesh.scale.setScalar(0.99) // shrink the solid mesh so that it doesn't obscure with the wireframe
 
   // Create the wireframe for the die edges
-  const { wireframeMesh, wireframeMaterial } = createWireframe(geometry)
+  const { wireframeMesh } = createWireframe(geometry)
 
   // Create the numbers for the die faces
   const {
@@ -44,7 +49,6 @@ export function createDie() {
 
   return {
     diceGroup,
-    wireframeMaterial,
     faceCenters,
     faceNormals,
     faceGeometries,
@@ -65,10 +69,6 @@ function createWireframe(geometry: IcosahedronGeometry) {
   }
   const wireframeGeometry = new LineGeometry()
   wireframeGeometry.setPositions(wireframePositions)
-  const wireframeMaterial = new LineMaterial({
-    color: 0x000000,
-    linewidth: 5,
-  })
   wireframeMaterial.resolution.set(window.innerWidth, window.innerHeight)
   const wireframeMesh = new Line2(wireframeGeometry, wireframeMaterial)
   wireframeMesh.renderOrder = 3
