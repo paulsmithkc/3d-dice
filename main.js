@@ -1,7 +1,5 @@
 import * as THREE from 'three'
-import { Line2 } from 'three/examples/jsm/lines/Line2.js'
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js'
+import { createDie } from './die.js'
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0xe8d4b8)
@@ -18,40 +16,12 @@ renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setAnimationLoop(animate)
 document.body.appendChild(renderer.domElement)
 
-const geometry = new THREE.IcosahedronGeometry()
-const solidMaterial = new THREE.MeshBasicMaterial({
-  color: 0xcc0000,
-})
-
-const wireframeBaseGeometry = new THREE.WireframeGeometry(geometry)
-const wireframeBasePositions = wireframeBaseGeometry.attributes.position
-const wireframePositions = []
-for (let i = 0; i < wireframeBasePositions.count; i++) {
-  wireframePositions.push(
-    wireframeBasePositions.getX(i),
-    wireframeBasePositions.getY(i),
-    wireframeBasePositions.getZ(i)
-  )
-}
-const wireframeGeometry = new LineGeometry()
-wireframeGeometry.setPositions(wireframePositions)
-const wireframeMaterial = new LineMaterial({
-  color: 0x000000,
-  linewidth: 5,
-})
-wireframeMaterial.resolution.set(window.innerWidth, window.innerHeight)
-
-const solidMesh = new THREE.Mesh(geometry, solidMaterial)
-solidMesh.scale.setScalar(0.99)
-const wireframeMesh = new Line2(wireframeGeometry, wireframeMaterial)
-scene.add(solidMesh)
-scene.add(wireframeMesh)
+const { diceGroup, wireframeMaterial } = createDie()
+scene.add(diceGroup)
 
 function animate(time) {
-  solidMesh.rotation.x = time * 0.001
-  solidMesh.rotation.y = time * 0.001
-  wireframeMesh.rotation.x = time * 0.001
-  wireframeMesh.rotation.y = time * 0.001
+  diceGroup.rotation.x = time * 0.001
+  diceGroup.rotation.y = time * 0.001
   renderer.render(scene, camera)
 }
 
