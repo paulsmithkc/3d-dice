@@ -4,6 +4,7 @@ import {
   Group,
   Mesh,
   PlaneGeometry,
+  Quaternion,
   Vector3,
 } from 'three'
 import { createTextMaterial } from './material'
@@ -54,8 +55,13 @@ export function createDieNumbers(geometry: BufferGeometry) {
     const numberGeometry = new PlaneGeometry(0.3, 0.3)
     const numberMesh = new Mesh(numberGeometry, numberMaterial)
 
+    const rotation = new Quaternion().setFromUnitVectors(
+      new Vector3().set(0, 0, 1),
+      faceNormals[i]
+    )
+
     numberMesh.position.copy(faceCenters[i].clone().multiplyScalar(1.02))
-    numberMesh.lookAt(faceCenters[i].clone().add(faceNormals[i]))
+    numberMesh.rotation.setFromQuaternion(rotation)
     numberMesh.renderOrder = 1
 
     numberGroup.add(numberMesh)
