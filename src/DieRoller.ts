@@ -26,10 +26,7 @@ export class DieRoller {
     this.die = createDie()
     this.clock = new Clock()
     this.spinDuration = 2 // 2 seconds
-    this.startRotation = new Quaternion().setFromUnitVectors(
-      this.die.faceNormals[0],
-      new Vector3().set(0, 0, 1)
-    )
+    this.startRotation = new Quaternion().random()
     this.targetRotation = this.startRotation.clone()
     this.overRotation = new Euler()
     this.isSpinning = false
@@ -51,16 +48,12 @@ export class DieRoller {
     this.startRotation = this.targetRotation.clone()
 
     // Generate random target rotation
-
     const faceNormals = this.die.faceNormals
     const num = randomInt(0, faceNormals.length)
     console.log(`Rolling ${num + 1}`)
+    this.targetRotation = this.die.faceRotations[num].clone().invert()
 
-    this.targetRotation = new Quaternion().setFromUnitVectors(
-      faceNormals[num],
-      new Vector3().set(0, 0, 1)
-    )
-
+    // Add some over-rotation to make it more chaotic
     const tau = Math.PI * 2
     this.overRotation = new Euler(
       randomInt(2, 5) * tau,

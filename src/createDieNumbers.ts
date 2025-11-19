@@ -2,6 +2,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   Group,
+  Matrix4,
   Mesh,
   PlaneGeometry,
   Quaternion,
@@ -13,6 +14,7 @@ export function createDieNumbers(geometry: BufferGeometry) {
   const positions = geometry.attributes.position
   const faceCenters = [] as Vector3[]
   const faceNormals = [] as Vector3[]
+  const faceRotations = [] as Quaternion[]
   const faceGeometries = [] as BufferGeometry[]
 
   // N.B. IcosahedronGeometry stores vertices directly as triangles (no index buffer)
@@ -42,10 +44,23 @@ export function createDieNumbers(geometry: BufferGeometry) {
     const center = new Vector3()
     center.add(v1).add(v2).add(v3).divideScalar(3)
     faceCenters.push(center)
-    const edge1 = new Vector3().subVectors(v2, v1)
-    const edge2 = new Vector3().subVectors(v3, v1)
+    const edge1 = new Vector3().subVectors(v2, v1).normalize()
+    const edge2 = new Vector3().subVectors(v3, v1).normalize()
     const normal = new Vector3().crossVectors(edge1, edge2).normalize()
     faceNormals.push(normal)
+
+    // Build a basis for the plane:
+    // Z = outward from face
+    // X = aligned with edge
+    // Y = Z × X (right-hand rule)
+    const matrix = new Matrix4().makeBasis(
+      edge1,
+      new Vector3().crossVectors(normal, edge1).normalize(),
+      normal
+    )
+
+    // Build quaternion from basis matrix
+    faceRotations.push(new Quaternion().setFromRotationMatrix(matrix))
   }
 
   const numberGroup = new Group()
@@ -55,18 +70,20 @@ export function createDieNumbers(geometry: BufferGeometry) {
     const numberGeometry = new PlaneGeometry(0.3, 0.3)
     const numberMesh = new Mesh(numberGeometry, numberMaterial)
 
-    const rotation = new Quaternion().setFromUnitVectors(
-      new Vector3().set(0, 0, 1),
-      faceNormals[i]
-    )
-
-    numberMesh.position.copy(faceCenters[i].clone().multiplyScalar(1.02))
-    numberMesh.rotation.setFromQuaternion(rotation)
+    numberMesh.position.copy(faceCenters[i]).multiplyScalar(1.02)
+    numberMesh.rotation.setFromQuaternion(faceRotations[i])
     numberMesh.renderOrder = 1
 
     numberGroup.add(numberMesh)
     numberMeshes.push(numberMesh)
   }
 
-  return { faceCenters, faceNormals, faceGeometries, numberMeshes, numberGroup }
+  return {
+    faceCenters,
+    faceNormals,
+    faceRotations,
+    faceGeometries,
+    numberMeshes,
+    numberGroup,
+  }
 }
